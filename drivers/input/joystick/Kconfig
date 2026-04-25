@@ -124,6 +124,11 @@ config JOYSTICK_INTERACT
 	  To compile this driver as a module, choose M here: the
 	  module will be called interact.
 
+config JOYSTICK_ROCKNIX_SINGLEADC
+        tristate "ROCKNIX_SINGLEADC joypad driver"
+        help
+          Made for Rocknix devices.
+
 config JOYSTICK_SIDEWINDER
 	tristate "Microsoft SideWinder digital joysticks and gamepads"
 	select GAMEPORT

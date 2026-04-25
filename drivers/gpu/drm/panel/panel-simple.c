@@ -210,6 +210,7 @@ struct panel_simple {
 	struct i2c_adapter *ddc;
 
 	struct gpio_desc *enable_gpio;
+	struct gpio_desc *enable1_gpio;
 	struct gpio_desc *reset_gpio;
 
 	struct edid *edid;
@@ -581,6 +582,8 @@ static int panel_simple_unprepare(struct drm_panel *panel)
 
 	gpiod_direction_output(p->reset_gpio, 1);
 	gpiod_direction_output(p->enable_gpio, 0);
+	if (p->enable1_gpio)
+		gpiod_direction_output(p->enable1_gpio, 0);
 
 	panel_simple_regulator_disable(p);
 
@@ -608,6 +611,8 @@ static int panel_simple_prepare(struct drm_panel *panel)
 	}
 
 	gpiod_direction_output(p->enable_gpio, 1);
+	if (p->enable1_gpio)
+		gpiod_direction_output(p->enable1_gpio, 1);
 
 	if (p->desc->delay.prepare)
 		panel_simple_msleep(p->desc->delay.prepare);
@@ -1009,7 +1014,12 @@ free_ddc:
 	if (panel->ddc)
 		put_device(&panel->ddc->dev);
 
-	return err;
+	panel->enable1_gpio = devm_gpiod_get_optional(dev, "enable1", GPIOD_ASIS);
+	if (IS_ERR(panel->enable1_gpio)) {
+		err = PTR_ERR(panel->enable1_gpio);
+		if (err != -EPROBE_DEFER)
+			dev_err(dev, "failed to get enable1 GPIO: %d\n", err);
+		return err;
 }
 
 static void panel_simple_remove(struct device *dev)
