@@ -892,6 +892,14 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 		return err;
 	}
 
+	panel->enable1_gpio = devm_gpiod_get_optional(dev, "enable1", GPIOD_ASIS);
+	if (IS_ERR(panel->enable1_gpio)) {
+		err = PTR_ERR(panel->enable1_gpio);
+		if (err != -EPROBE_DEFER)
+			dev_err(dev, "failed to get enable1 GPIO: %d\n", err);
+		return err;
+	}
+
 	panel->enable_gpio = devm_gpiod_get_optional(dev, "enable", GPIOD_ASIS);
 	if (IS_ERR(panel->enable_gpio)) {
 		err = PTR_ERR(panel->enable_gpio);
@@ -1013,12 +1021,6 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 free_ddc:
 	if (panel->ddc)
 		put_device(&panel->ddc->dev);
-
-	panel->enable1_gpio = devm_gpiod_get_optional(dev, "enable1", GPIOD_ASIS);
-	if (IS_ERR(panel->enable1_gpio)) {
-		err = PTR_ERR(panel->enable1_gpio);
-		if (err != -EPROBE_DEFER)
-			dev_err(dev, "failed to get enable1 GPIO: %d\n", err);
 		return err;
 }
 

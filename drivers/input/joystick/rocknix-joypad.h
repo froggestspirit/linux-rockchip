@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2024 ROCKNIX (https://github.com/ROCKNIX)
  */
-+
+
 #define SARADC_CH0      0
 #define SARADC_CH1      1
 #define SARADC_CH2      2
@@ -13,5 +13,5 @@
 #define SARADC_CH5      5
 #define SARADC_CH6      6
 #define SARADC_CH7      7
-+
+
 #define SARADC_CH_NUM 8
