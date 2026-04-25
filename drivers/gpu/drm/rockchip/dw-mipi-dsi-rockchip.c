@@ -21,6 +21,7 @@
 #include <drm/bridge/dw_mipi_dsi.h>
 #include <drm/drm_mipi_dsi.h>
 #include <drm/drm_of.h>
+#include <drm/drm_panel.h>
 #include <drm/drm_simple_kms_helper.h>
 
 #include "rockchip_drm_drv.h"
@@ -1410,6 +1411,7 @@ static ssize_t dw_mipi_dsi_rockchip_sleep_store(struct device *dev,
                                      const char *buf, size_t count)
 {
     struct dw_mipi_dsi_rockchip *dsi = dev_get_drvdata(dev);
+	struct drm_panel *panel = dsi->dmd->panel;
     int ret;
     u32 val;
 
@@ -1417,7 +1419,15 @@ static ssize_t dw_mipi_dsi_rockchip_sleep_store(struct device *dev,
     if (ret)
         return ret;
 
-    dev_info(dev, "dw_mipi_dsi_rockchip_sleep called with val=%u\n", val);
+	dev_info(dev, "Calling sleep with value: %u\n", val);
+
+	if(val == 1){
+		drm_panel_disable(panel);
+		drm_panel_unprepare(panel);
+	} else if(val == 0){
+		drm_panel_prepare(panel);
+		drm_panel_enable(panel);
+	}
 
     return count;
 }
@@ -1428,8 +1438,7 @@ static ssize_t dw_mipi_dsi_rockchip_sleep_show(struct device *dev,
 {
     struct dw_mipi_dsi_rockchip *dsi = dev_get_drvdata(dev);
 
-    /* Return current state to userspace */
-    return sysfs_emit(buf, "%u\n", dsi->some_state);
+    return sysfs_emit(buf, "test\n");
 }
 
 static DEVICE_ATTR_RW(dw_mipi_dsi_rockchip_sleep);
