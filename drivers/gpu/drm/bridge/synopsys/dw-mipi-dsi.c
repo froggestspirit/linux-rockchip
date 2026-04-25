@@ -929,7 +929,7 @@ static void dw_mipi_dsi_bridge_mode_set(struct drm_bridge *bridge,
 		drm_mode_copy(&dsi->slave->mode, adjusted_mode);
 }
 
-static void dw_mipi_dsi_pre_enable(struct dw_mipi_dsi *dsi)
+void dw_mipi_dsi_pre_enable(struct dw_mipi_dsi *dsi)
 {
 	const struct dw_mipi_dsi_phy_ops *phy_ops = dsi->plat_data->phy_ops;
 	void *priv_data = dsi->plat_data->priv_data;
@@ -982,6 +982,8 @@ static void dw_mipi_dsi_pre_enable(struct dw_mipi_dsi *dsi)
 		dw_mipi_dsi_pre_enable(dsi->slave);
 }
 
+EXPORT_SYMBOL_GPL(dw_mipi_dsi_pre_enable);
+
 static void dw_mipi_dsi_bridge_atomic_pre_enable(struct drm_bridge *bridge,
 						 struct drm_bridge_state *old_bridge_state)
 {
@@ -997,7 +999,7 @@ static void dw_mipi_dsi_bridge_atomic_pre_enable(struct drm_bridge *bridge,
 		drm_panel_prepare(dsi->panel);
 }
 
-static void dw_mipi_dsi_enable(struct dw_mipi_dsi *dsi)
+void dw_mipi_dsi_enable(struct dw_mipi_dsi *dsi)
 {
 	u32 val;
 
@@ -1017,6 +1019,8 @@ static void dw_mipi_dsi_enable(struct dw_mipi_dsi *dsi)
 	if (dsi->slave)
 		dw_mipi_dsi_enable(dsi->slave);
 }
+
+EXPORT_SYMBOL_GPL(dw_mipi_dsi_enable);
 
 static void dw_mipi_dsi_bridge_atomic_enable(struct drm_bridge *bridge,
 					     struct drm_bridge_state *old_bridge_state)

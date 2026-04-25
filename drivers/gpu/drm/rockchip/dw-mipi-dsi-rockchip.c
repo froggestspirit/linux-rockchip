@@ -27,6 +27,10 @@
 #include "rockchip_drm_drv.h"
 #include "rockchip_drm_vop.h"
 
+// Headers for the dmd commands
+extern void dw_mipi_dsi_pre_enable(struct dw_mipi_dsi *dsi);
+extern void dw_mipi_dsi_enable(struct dw_mipi_dsi *dsi);
+
 #define DSI_PHY_RSTZ			0xa0
 #define PHY_DISFORCEPLL			0
 #define PHY_ENFORCEPLL			BIT(3)
@@ -1406,10 +1410,6 @@ dw_mipi_dsi_rockchip_stream_standby(void *priv_data, bool standby)
 
 	rockchip_drm_crtc_standby(encoder->crtc, standby);
 }
-
-// Headers for the dmd commands
-void dw_mipi_dsi_pre_enable(struct dw_mipi_dsi *dsi);
-void dw_mipi_dsi_enable(struct dw_mipi_dsi *dsi);
 
 static ssize_t dw_mipi_dsi_rockchip_sleep_store(struct device *dev,
                                      struct device_attribute *attr,
