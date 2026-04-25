@@ -1405,6 +1405,45 @@ dw_mipi_dsi_rockchip_stream_standby(void *priv_data, bool standby)
 	rockchip_drm_crtc_standby(encoder->crtc, standby);
 }
 
+static ssize_t dw_mipi_dsi_rockchip_sleep_store(struct device *dev,
+                                     struct device_attribute *attr,
+                                     const char *buf, size_t count)
+{
+    struct dw_mipi_dsi_rockchip *dsi = dev_get_drvdata(dev);
+    int ret;
+    u32 val;
+
+    ret = kstrtou32(buf, 0, &val);
+    if (ret)
+        return ret;
+
+    dev_info(dev, "dw_mipi_dsi_rockchip_sleep called with val=%u\n", val);
+
+    return count;
+}
+
+static ssize_t dw_mipi_dsi_rockchip_sleep_show(struct device *dev,
+                                    struct device_attribute *attr,
+                                    char *buf)
+{
+    struct dw_mipi_dsi_rockchip *dsi = dev_get_drvdata(dev);
+
+    /* Return current state to userspace */
+    return sysfs_emit(buf, "%u\n", dsi->some_state);
+}
+
+static DEVICE_ATTR_RW(dw_mipi_dsi_rockchip_sleep);
+
+static struct attribute *dw_mipi_dsi_rockchip_attrs[] = {
+    &dev_attr_dw_mipi_dsi_rockchip_sleep.attr,
+    NULL,
+};
+
+static const struct attribute_group dw_mipi_dsi_rockchip_attr_group = {
+    .name  = "rockchip_dsi",        /* creates /sys/.../rockchip_dsi/ subdir */
+    .attrs = dw_mipi_dsi_rockchip_attrs,
+};
+
 static int dw_mipi_dsi_rockchip_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -1548,8 +1587,16 @@ static int dw_mipi_dsi_rockchip_probe(struct platform_device *pdev)
 		goto err_clkdisable;
 	}
 
-	return 0;
+    ret = sysfs_create_group(&pdev->dev.kobj,
+                             &dw_mipi_dsi_rockchip_attr_group);
+    if (ret) {
+        dev_err(&pdev->dev, "Failed to create sysfs group: %d\n", ret);
+        goto err_sysfs;
+    }
 
+    return 0;
+
+err_sysfs:
 err_clkdisable:
 	clk_disable_unprepare(dsi->pllref_clk);
 	return ret;
@@ -1559,6 +1606,8 @@ static int dw_mipi_dsi_rockchip_remove(struct platform_device *pdev)
 {
 	struct dw_mipi_dsi_rockchip *dsi = platform_get_drvdata(pdev);
 
+    sysfs_remove_group(&pdev->dev.kobj,
+                       &dw_mipi_dsi_rockchip_attr_group);
 
 	dw_mipi_dsi_rockchip_component_del(dsi);
 	dw_mipi_dsi_remove(dsi->dmd);
