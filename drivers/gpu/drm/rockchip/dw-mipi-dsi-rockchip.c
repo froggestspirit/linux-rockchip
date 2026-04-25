@@ -344,6 +344,7 @@ struct dw_mipi_dsi_rockchip {
 	struct rockchip_drm_sub_dev sub_dev;
 	struct drm_panel *panel;
 	struct drm_bridge *bridge;
+	u32 sleep_state;
 };
 
 static struct dw_mipi_dsi_rockchip *to_dsi(struct drm_encoder *encoder)
@@ -1406,12 +1407,17 @@ dw_mipi_dsi_rockchip_stream_standby(void *priv_data, bool standby)
 	rockchip_drm_crtc_standby(encoder->crtc, standby);
 }
 
+// Headers for the dmd commands
+void dw_mipi_dsi_pre_enable(struct dw_mipi_dsi *dsi);
+void dw_mipi_dsi_enable(struct dw_mipi_dsi *dsi);
+
 static ssize_t dw_mipi_dsi_rockchip_sleep_store(struct device *dev,
                                      struct device_attribute *attr,
                                      const char *buf, size_t count)
 {
     struct dw_mipi_dsi_rockchip *dsi = dev_get_drvdata(dev);
-	struct drm_panel *panel = dsi->dmd->panel;
+	struct drm_panel *panel = dsi->panel;
+	struct dw_mipi_dsi *dmd = dsi->dmd;
     int ret;
     u32 val;
 
@@ -1421,12 +1427,16 @@ static ssize_t dw_mipi_dsi_rockchip_sleep_store(struct device *dev,
 
 	dev_info(dev, "Calling sleep with value: %u\n", val);
 
-	if(val == 1){
+	if((val == 1) && (dsi->sleep_state != val)){
 		drm_panel_disable(panel);
 		drm_panel_unprepare(panel);
-	} else if(val == 0){
+		dsi->sleep_state = val;
+	} else if((val == 0) && (dsi->sleep_state != val)){
+		dw_mipi_dsi_pre_enable(dmd);
 		drm_panel_prepare(panel);
+		dw_mipi_dsi_enable(dmd);
 		drm_panel_enable(panel);
+		dsi->sleep_state = val;
 	}
 
     return count;
@@ -1438,7 +1448,7 @@ static ssize_t dw_mipi_dsi_rockchip_sleep_show(struct device *dev,
 {
     struct dw_mipi_dsi_rockchip *dsi = dev_get_drvdata(dev);
 
-    return sysfs_emit(buf, "test\n");
+    return sysfs_emit(buf, "%u\n", dsi->sleep_state);
 }
 
 static DEVICE_ATTR_RW(dw_mipi_dsi_rockchip_sleep);
@@ -1449,7 +1459,7 @@ static struct attribute *dw_mipi_dsi_rockchip_attrs[] = {
 };
 
 static const struct attribute_group dw_mipi_dsi_rockchip_attr_group = {
-    .name  = "rockchip_dsi",        /* creates /sys/.../rockchip_dsi/ subdir */
+    .name  = "rockchip_dsi",
     .attrs = dw_mipi_dsi_rockchip_attrs,
 };
 
@@ -1562,6 +1572,7 @@ static int dw_mipi_dsi_rockchip_probe(struct platform_device *pdev)
 	dsi->pdata.max_data_lanes = dsi->cdata->max_data_lanes;
 	dsi->pdata.phy_ops = &dw_mipi_dsi_rockchip_phy_ops;
 	dsi->pdata.priv_data = dsi;
+	dsi->sleep_state = 0;
 
 	if (dsi->cdata->soc_type == RK3568)
 		dsi->pdata.stream_standby = dw_mipi_dsi_rockchip_stream_standby;
