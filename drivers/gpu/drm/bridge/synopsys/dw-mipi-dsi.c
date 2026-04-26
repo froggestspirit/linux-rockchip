@@ -598,7 +598,7 @@ static void dw_mipi_dsi_set_mode(struct dw_mipi_dsi *dsi,
 	dsi_write(dsi, DSI_PWR_UP, POWERUP);
 }
 
-static void dw_mipi_dsi_disable(struct dw_mipi_dsi *dsi)
+void dw_mipi_dsi_disable(struct dw_mipi_dsi *dsi)
 {
 	dsi_write(dsi, DSI_LPCLK_CTRL, 0);
 	dsi_write(dsi, DSI_EDPI_CMD_SIZE, 0);
@@ -606,6 +606,8 @@ static void dw_mipi_dsi_disable(struct dw_mipi_dsi *dsi)
 	if (dsi->slave)
 		dw_mipi_dsi_disable(dsi->slave);
 }
+
+EXPORT_SYMBOL_GPL(dw_mipi_dsi_disable);
 
 static void dw_mipi_dsi_init(struct dw_mipi_dsi *dsi)
 {
@@ -858,7 +860,7 @@ static void dw_mipi_dsi_clear_err(struct dw_mipi_dsi *dsi)
 	dsi_write(dsi, DSI_INT_MSK1, 0);
 }
 
-static void dw_mipi_dsi_post_disable(struct dw_mipi_dsi *dsi)
+void dw_mipi_dsi_post_disable(struct dw_mipi_dsi *dsi)
 {
 	const struct dw_mipi_dsi_phy_ops *phy_ops = dsi->plat_data->phy_ops;
 
@@ -872,6 +874,8 @@ static void dw_mipi_dsi_post_disable(struct dw_mipi_dsi *dsi)
 	if (dsi->slave)
 		dw_mipi_dsi_post_disable(dsi->slave);
 }
+
+EXPORT_SYMBOL_GPL(dw_mipi_dsi_post_disable);
 
 static void dw_mipi_dsi_bridge_post_atomic_disable(struct drm_bridge *bridge,
 						   struct drm_bridge_state *old_bridge_state)

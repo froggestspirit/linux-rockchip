@@ -28,6 +28,8 @@
 #include "rockchip_drm_vop.h"
 
 // Headers for the dmd commands
+extern void dw_mipi_dsi_disable(struct dw_mipi_dsi *dsi);
+extern void dw_mipi_dsi_post_disable(struct dw_mipi_dsi *dsi);
 extern void dw_mipi_dsi_pre_enable(struct dw_mipi_dsi *dsi);
 extern void dw_mipi_dsi_enable(struct dw_mipi_dsi *dsi);
 
@@ -1425,11 +1427,11 @@ static ssize_t dw_mipi_dsi_rockchip_sleep_store(struct device *dev,
     if (ret)
         return ret;
 
-	dev_info(dev, "Calling sleep with value: %u\n", val);
-
 	if((val == 1) && (dsi->sleep_state != val)){
 		drm_panel_disable(panel);
+		dw_mipi_dsi_disable(dmd);
 		drm_panel_unprepare(panel);
+		dw_mipi_dsi_post_disable(dmd);
 		dsi->sleep_state = val;
 	} else if((val == 0) && (dsi->sleep_state != val)){
 		dw_mipi_dsi_pre_enable(dmd);
